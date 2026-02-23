@@ -7,15 +7,19 @@ public class MyTree<T extends Comparable<T>> {
         this.root = null;
     }
 
+    // insert()
+    //      Inserts an item into the BST
     public MyNode<T> insert(T item){
         if (item == null){
             throw new IllegalArgumentException("Insertion Failed: item is null");
         }
+        // empty tree case
         if (this.root == null){
             this.root = new MyNode<>(item);
             this.newAdded = true;
             return this.root;
         }
+        // find insertion point
         MyNode<T> curr = root;
         MyNode<T> parent = null;
         while (curr != null){
@@ -30,6 +34,7 @@ public class MyTree<T extends Comparable<T>> {
                 curr = curr.getLeft();
             }
         }
+        // create and attach new node
         MyNode<T> newNode = new MyNode<>(item);
         newNode.setParent(parent);
         int compare = (newNode.getItem()).compareTo(parent.getItem());
@@ -42,6 +47,8 @@ public class MyTree<T extends Comparable<T>> {
         return newNode;
     }
 
+    // contains()
+    //      Search for item in BST
     public MyNode<T> contains(T item){
         if(item == null) {
             throw new IllegalArgumentException("Contains Failed: item is null");
@@ -60,12 +67,14 @@ public class MyTree<T extends Comparable<T>> {
         return null;
     }
 
+    // remove()
+    //      Remove item from BST
     public boolean remove(T item){
         if (item == null) {
             throw new IllegalArgumentException("Remove Failed: item is null");
         }
 
-        // Single traversal
+        // find target node
         MyNode<T> target = this.root;
         while (target != null) {
             int compare = item.compareTo(target.getItem());
@@ -131,6 +140,8 @@ public class MyTree<T extends Comparable<T>> {
         return true;
     }
 
+    // toString()
+    //      Return string of BST items in in-order: "item1, item2, item3"
     public String toString(){
         if (this.root == null) return "";
         StringBuilder str = new StringBuilder();
@@ -141,6 +152,8 @@ public class MyTree<T extends Comparable<T>> {
         return str.toString();
     }
 
+    // getRoot()
+    //      return root node of BST
     public MyNode<T> getRoot(){
         return this.root;
     }
