@@ -28,10 +28,6 @@ public class MyNode<T> {
         return this.parent;
     }
 
-    public void setItem(T item){
-        this.item = item;
-    }
-
     public void setLeft(MyNode<T> node){
         this.left = node;
     }
