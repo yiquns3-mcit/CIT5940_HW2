@@ -60,82 +60,70 @@ public class MyTree<T extends Comparable<T>> {
         if (item == null) {
             throw new IllegalArgumentException("Remove Failed: item is null");
         }
-        MyNode<T> target = contains(item);
+
+        // Single traversal
+        MyNode<T> target = this.root;
+        while (target != null) {
+            int compare = item.compareTo(target.getItem());
+            if (compare == 0) {
+                break;
+            } else if (compare > 0) {
+                target = target.getRight();
+            } else {
+                target = target.getLeft();
+            }
+        }
+
         if (target == null) return false;
 
         // case 1: no child
         if (target.getLeft() == null && target.getRight() == null){
-            // case 1a): no parent (root)
-            if (target.getParent() == null){
-                this.root = null;
-                return true;
-            }
-            // case 1b): has parent (leaf node)
-            MyNode<T> parentNode = target.getParent();
-            int compare = item.compareTo(parentNode.getItem());
-            if (compare > 0){
-                parentNode.setRight(null);
-            } else {
-                parentNode.setLeft(null);
-            }
+            transplant(target, null);
             return true;
         }
 
         // case 2: one child
         if (target.getLeft() == null){
-            // case 2a): no parent (root)
-            if (target.getParent() == null){
-                this.root = target.getRight();
-                this.root.setParent(null);
-                return true;
-            }
-            // case 2b): has parent (node)
-            MyNode<T> parentNode = target.getParent();
-            int compare = item.compareTo(parentNode.getItem());
-            if (compare > 0){
-                parentNode.setRight(target.getRight());
-            } else {
-                parentNode.setLeft(target.getRight());
-            }
-            target.getRight().setParent(parentNode);
+            transplant(target, target.getRight());
             return true;
         }
 
         if (target.getRight() == null){
-            // case 2c): no parent (root)
-            if (target.getParent() == null){
-                this.root = target.getLeft();
-                this.root.setParent(null);
-                return true;
-            }
-            // case 2d): has parent (node)
-            MyNode<T> parentNode = target.getParent();
-            int compare = item.compareTo(parentNode.getItem());
-            if (compare > 0){
-                parentNode.setRight(target.getLeft());
-            } else {
-                parentNode.setLeft(target.getLeft());
-            }
-            target.getLeft().setParent(parentNode);
+            transplant(target, target.getLeft());
             return true;
         }
 
         // case 3: two children
-        MyNode<T> replace = getLeftMax(target);
-        target.setItem(replace.getItem());
-        MyNode<T> replaceParent = replace.getParent();
-        MyNode<T> replaceLeft = replace.getLeft();
-        // case 3a): replace = target left node
-        if (replaceParent == target){
-            replaceParent.setLeft(replaceLeft);
+        // Find the minimum node in target's right subtree (in-order successor)
+        MyNode<T> replace = getRightMin(target);
+        MyNode<T> replaceRight = replace.getRight();
+        // case 3a) replace is target's direct right child
+        if (replace.getParent() == target) {
+            // step 1. connect target's parent with replace directly
+            transplant(target, replace);
+            // step 2. replace inherit target's left child
+            replace.setLeft(target.getLeft());
+            if (target.getLeft() != null) {
+                target.getLeft().setParent(replace);
+            }
         }
-        // case 3b): replace = target left node's descendents
+        // case 3b) replace is a left descendant of target's right subtree
         else {
-            replaceParent.setRight(replaceLeft);
+            // step 1. remove replace node with its right child first
+            transplant(replace, replaceRight);
+            // step 2. connect target's parent with replace directly
+            transplant(target, replace);
+            // step 3. connect target's subtrees with replace directly
+            replace.setLeft(target.getLeft());
+            if (target.getLeft() != null) {
+                target.getLeft().setParent(replace);
+            }
+            replace.setRight(target.getRight());
+            if (target.getRight() != null) {
+                target.getRight().setParent(replace);
+            }
         }
-        if (replaceLeft != null) {
-            replaceLeft.setParent(replaceParent);
-        }
+
         return true;
     }
 
@@ -154,6 +142,9 @@ public class MyTree<T extends Comparable<T>> {
     }
 
     // Helper Functions
+
+    // inOrder():
+    //      Performs in-order traversal of the tree.
     private void inOrder(MyNode<T> curr, StringBuilder str){
         if (curr == null){
             return;
@@ -164,10 +155,35 @@ public class MyTree<T extends Comparable<T>> {
         inOrder(curr.getRight(), str);
     }
 
-    private MyNode<T> getLeftMax(MyNode<T> target){
-        MyNode<T> curr = target.getLeft();
-        while(curr.getRight() != null){
-            curr = curr.getRight();
+    // transplant():
+    //      Replaces node “remove” (root or non-root, with 0 or 1 child) with node "replace" (child or null)
+    // possible inputs:
+    //      remove = root / non-root
+    //      replace = null(remove has no child) / the only child of the remove
+    // goal:
+    //      parent(remove)'s child node -> replace
+    //      parent(replace) -> parent(remove).
+    private void transplant(MyNode<T> remove, MyNode<T> replace){
+        if (remove.getParent() == null){
+            this.root = replace;
+        }
+        else if (remove == remove.getParent().getLeft()) {
+            remove.getParent().setLeft(replace);
+        }
+        else {
+            remove.getParent().setRight(replace);
+        }
+        if (replace != null) {
+            replace.setParent(remove.getParent());
+        }
+    }
+
+    // getRightMin()
+    //      Finds the minimum node in the right subtree (in-order successor)
+    private MyNode<T> getRightMin(MyNode<T> target){
+        MyNode<T> curr = target.getRight();
+        while(curr.getLeft() != null){
+            curr = curr.getLeft();
         }
         return curr;
     }
