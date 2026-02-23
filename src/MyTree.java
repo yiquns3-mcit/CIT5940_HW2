@@ -1,6 +1,7 @@
 public class MyTree<T extends Comparable<T>> {
 
     private MyNode<T> root;
+    private boolean newAdded = false;
 
     public MyTree(){
         this.root = null;
@@ -12,6 +13,7 @@ public class MyTree<T extends Comparable<T>> {
         }
         if (this.root == null){
             this.root = new MyNode<>(item);
+            this.newAdded = true;
             return this.root;
         }
         MyNode<T> curr = root;
@@ -20,6 +22,7 @@ public class MyTree<T extends Comparable<T>> {
             parent = curr;
             int compare = item.compareTo(curr.getItem());
             if (compare == 0){
+                this.newAdded = false;
                 return curr;
             } else if (compare > 0){
                 curr = curr.getRight();
@@ -35,6 +38,7 @@ public class MyTree<T extends Comparable<T>> {
         } else if (compare < 0){
             parent.setLeft(newNode);
         }
+        this.newAdded = true;
         return newNode;
     }
 
@@ -186,6 +190,13 @@ public class MyTree<T extends Comparable<T>> {
             curr = curr.getLeft();
         }
         return curr;
+    }
+
+    // isNewAdded()
+    //      true: if the most recent insert operation created a new node
+    //      false: if it found a duplicate
+    public boolean isNewAdded() {
+        return this.newAdded;
     }
 
 }
